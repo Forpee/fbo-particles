@@ -81,6 +81,11 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
+//gpu compute
+let gpuCompute = new GPUComputationRenderer( WIDTH, WIDTH, renderer );
+const dtPosition = gpuCompute.createTexture();
+let positionVariable = gpuCompute.addVariable( "texturePosition", fragmentSimulation, dtPosition );
+
 /**
  * Animate
  */
