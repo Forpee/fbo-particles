@@ -4,10 +4,13 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'dat.gui'
 import testVertexShader from './shaders/test/vertex.glsl'
 import testFragmentShader from './shaders/test/fragment.glsl'
+import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
 
 /**
  * Base
  */
+
+const WIDTH = 32;
 // Debug
 const gui = new dat.GUI()
 
@@ -31,7 +34,7 @@ const material = new THREE.ShaderMaterial({
 })
 
 // Mesh
-const mesh = new THREE.Mesh(geometry, material)
+const mesh = new THREE.Points(geometry, material)
 scene.add(mesh)
 
 /**
