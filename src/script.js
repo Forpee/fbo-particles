@@ -2,6 +2,7 @@ import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'dat.gui'
+import fragmentSimulation from './shaders/test/fragmentSimulation.glsl'
 import testVertexShader from './shaders/test/vertex.glsl'
 import testFragmentShader from './shaders/test/fragment.glsl'
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
@@ -24,10 +25,30 @@ const scene = new THREE.Scene()
  * Test mesh
  */
 // Geometry
-const geometry = new THREE.PlaneBufferGeometry(1, 1, 32, 32)
+const geometry = new THREE.BufferGeometry()
+
+let positions =  new Float32Array(WIDTH * WIDTH * 3)
+let references = new Float32Array(WIDTH * WIDTH * 2)
+
+for (let i = 0; i < WIDTH * WIDTH; i++) {
+let x = Math.random() 
+let y = Math.random()
+let z = Math.random()
+let xx = (i%WIDTH) / WIDTH
+let yy = ~~(i/WIDTH) / WIDTH
+positions.set([x,y,z], i*3)
+references.set([xx,yy], i*2)
+}
+
+geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+geometry.setAttribute('reference', new THREE.BufferAttribute(references, 2))
 
 // Material
 const material = new THREE.ShaderMaterial({
+    uniforms: {
+        time: { value: 0 },
+        positionTexture: { value: null },
+    },
     vertexShader: testVertexShader,
     fragmentShader: testFragmentShader,
     side: THREE.DoubleSide
@@ -84,7 +105,26 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 //gpu compute
 let gpuCompute = new GPUComputationRenderer( WIDTH, WIDTH, renderer );
 const dtPosition = gpuCompute.createTexture();
+
+let arr = dtPosition.image.data;
+
+
+for ( let i = 0; i < arr.length; i=i+4 ) {
+
+    arr[ i ] = Math.random();
+    arr[ i + 1 ] = Math.random();
+    arr[ i + 2 ] = Math.random();
+    arr[ i + 3 ] = 1;
+}
+console.log(arr);
+
 let positionVariable = gpuCompute.addVariable( "texturePosition", fragmentSimulation, dtPosition );
+
+positionVariable.material.uniforms.time = { value: 0.0 }
+positionVariable.wrapS = THREE.RepeatWrapping;
+positionVariable.wrapT = THREE.RepeatWrapping;
+
+gpuCompute.init()
 
 /**
  * Animate
