@@ -39,7 +39,7 @@ for (let i = 0; i < WIDTH * WIDTH; i++) {
     positions.set([x, y, z], i * 3)
     references.set([xx, yy], i * 2)
 }
-
+// console.log(positions);
 geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
 geometry.setAttribute('reference', new THREE.BufferAttribute(references, 2))
 
@@ -107,7 +107,7 @@ const dtPosition = gpuCompute.createTexture();
 
 let arr = dtPosition.image.data;
 
-
+console.log('dt', dtPosition.image.data);
 for (let i = 0; i < arr.length; i = i + 4) {
 
     arr[i] = Math.random();
@@ -115,7 +115,10 @@ for (let i = 0; i < arr.length; i = i + 4) {
     arr[i + 2] = Math.random();
     arr[i + 3] = 1;
 }
-console.log(arr);
+dtPosition.image.data = arr;
+dtPosition.needsUpdate = true;
+console.log('dt after', dtPosition.image.data);
+
 
 let positionVariable = gpuCompute.addVariable("texturePosition", fragmentSimulation, dtPosition);
 
@@ -123,25 +126,31 @@ positionVariable.material.uniforms.time = { value: 0.0 }
 positionVariable.wrapS = THREE.RepeatWrapping;
 positionVariable.wrapT = THREE.RepeatWrapping;
 
-gpuCompute.init()
+
+
+const error = gpuCompute.init()
+if (error !== null) {
+    console.error(error)
+}
 
 /**
  * Animate
  */
+// console.log( gpuCompute.getCurrentRenderTarget(positionVariable).texture);
 let clock = new THREE.Clock();
 const tick = () => {
     // Update controls
-    
+
     controls.update()
     let elapsedTime = clock.getElapsedTime()
-    positionVariable.material.uniforms.time.value = elapsedTime
-  
+    positionVariable.material.uniforms['time'].value = elapsedTime
+    gpuCompute.compute()
+    dtPosition.needsUpdate = true;
+    material.uniforms.positionTexture.value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;
     // Render
     renderer.render(scene, camera)
-    gpuCompute.compute()
- 
-    material.uniforms.positionTexture.value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;
-    
+
+
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
 }

@@ -78,9 +78,9 @@ vec3 curl(float	x,	float	y,	float	z)
     float	eps	= 1., eps2 = 2. * eps;
     float	n1,	n2,	a,	b;
 
-    x += timer * .05;
-    y += timer * .05;
-    z += timer * .05;
+    x += time * .05;
+    y += time * .05;
+    z += time * .05;
 
     vec3	curl = vec3(0.);
 
@@ -123,6 +123,9 @@ void main(){
     vec4 tmpPos=texture2D(texturePosition,uv);
     vec3 position=tmpPos.xyz;
     
-    gl_FragColor=vec4(position+vec3(0.001),1.);
+    float f = 1.;
+    float amplitude = 0.002;
+    vec3 target = position + amplitude*curl(f*position.x,f*position.y,f*position.z);
+    gl_FragColor=vec4(target,1.);
     
 }
