@@ -6,12 +6,24 @@ import fragmentSimulation from './shaders/test/fragmentSimulation.glsl'
 import testVertexShader from './shaders/test/vertex.glsl'
 import testFragmentShader from './shaders/test/fragment.glsl'
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 /**
  * Base
  */
+ const gltfLoader = new GLTFLoader()
+ gltfLoader.load(
+    '/models/scene.gltf',
+    (gltf) =>
+    {
+        console.log('success')
+        console.log(gltf.scene)
+        // scene.add(gltf.scene.children)
 
-const WIDTH = 32;
+        // scene.add(gltf.scene)
+    }
+)
+const WIDTH = 128;
 // Debug
 const gui = new dat.GUI()
 
@@ -25,7 +37,7 @@ const scene = new THREE.Scene()
  * Test mesh
  */
 // Geometry
-const geometry = new THREE.BufferGeometry()
+let geometry = new THREE.BufferGeometry()
 
 let positions = new Float32Array(WIDTH * WIDTH * 3)
 let references = new Float32Array(WIDTH * WIDTH * 2)
@@ -55,6 +67,7 @@ const material = new THREE.ShaderMaterial({
 })
 
 // Mesh
+geometry = new THREE.IcosahedronBufferGeometry(1, 128)
 const mesh = new THREE.Points(geometry, material)
 scene.add(mesh)
 
@@ -146,7 +159,8 @@ const tick = () => {
     positionVariable.material.uniforms['time'].value = elapsedTime
     gpuCompute.compute()
     dtPosition.needsUpdate = true;
-    material.uniforms.positionTexture.value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;
+    material.uniforms.time.value = elapsedTime*2
+    // material.uniforms.positionTexture.value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;
     // Render
     renderer.render(scene, camera)
 
