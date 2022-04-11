@@ -27,17 +27,17 @@ const scene = new THREE.Scene()
 // Geometry
 const geometry = new THREE.BufferGeometry()
 
-let positions =  new Float32Array(WIDTH * WIDTH * 3)
+let positions = new Float32Array(WIDTH * WIDTH * 3)
 let references = new Float32Array(WIDTH * WIDTH * 2)
 
 for (let i = 0; i < WIDTH * WIDTH; i++) {
-let x = Math.random() 
-let y = Math.random()
-let z = Math.random()
-let xx = (i%WIDTH) / WIDTH
-let yy = ~~(i/WIDTH) / WIDTH
-positions.set([x,y,z], i*3)
-references.set([xx,yy], i*2)
+    let x = Math.random()
+    let y = Math.random()
+    let z = Math.random()
+    let xx = (i % WIDTH) / WIDTH
+    let yy = ~~(i / WIDTH) / WIDTH
+    positions.set([x, y, z], i * 3)
+    references.set([xx, yy], i * 2)
 }
 
 geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
@@ -66,8 +66,7 @@ const sizes = {
     height: window.innerHeight
 }
 
-window.addEventListener('resize', () =>
-{
+window.addEventListener('resize', () => {
     // Update sizes
     sizes.width = window.innerWidth
     sizes.height = window.innerHeight
@@ -103,22 +102,22 @@ renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 //gpu compute
-let gpuCompute = new GPUComputationRenderer( WIDTH, WIDTH, renderer );
+let gpuCompute = new GPUComputationRenderer(WIDTH, WIDTH, renderer);
 const dtPosition = gpuCompute.createTexture();
 
 let arr = dtPosition.image.data;
 
 
-for ( let i = 0; i < arr.length; i=i+4 ) {
+for (let i = 0; i < arr.length; i = i + 4) {
 
-    arr[ i ] = Math.random();
-    arr[ i + 1 ] = Math.random();
-    arr[ i + 2 ] = Math.random();
-    arr[ i + 3 ] = 1;
+    arr[i] = Math.random();
+    arr[i + 1] = Math.random();
+    arr[i + 2] = Math.random();
+    arr[i + 3] = 1;
 }
 console.log(arr);
 
-let positionVariable = gpuCompute.addVariable( "texturePosition", fragmentSimulation, dtPosition );
+let positionVariable = gpuCompute.addVariable("texturePosition", fragmentSimulation, dtPosition);
 
 positionVariable.material.uniforms.time = { value: 0.0 }
 positionVariable.wrapS = THREE.RepeatWrapping;
@@ -129,14 +128,20 @@ gpuCompute.init()
 /**
  * Animate
  */
-const tick = () =>
-{
+let clock = new THREE.Clock();
+const tick = () => {
     // Update controls
+    
     controls.update()
-
+    let elapsedTime = clock.getElapsedTime()
+    positionVariable.material.uniforms.time.value = elapsedTime
+  
     // Render
     renderer.render(scene, camera)
-
+    gpuCompute.compute()
+ 
+    material.uniforms.positionTexture.value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;
+    
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
 }

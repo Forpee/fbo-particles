@@ -1,6 +1,13 @@
-uniform float time;
-uniform float delta;
-uniform sampler2D texturePosition;
+
+// simulation
+
+varying vec2 vUv;
+uniform sampler2D texture;
+uniform float timer;
+uniform float frequency;
+uniform float amplitude;
+uniform float maxDistance;
+
 //
 // Description : Array and textureless GLSL 2D simplex noise function.
 //      Author : Ian McEwan, Ashima Arts.
@@ -117,12 +124,17 @@ vec3 curl(float	x,	float	y,	float	z)
     return	curl;
 }
 
-void main(){
-    
-    vec2 uv=gl_FragCoord.xy/resolution.xy;
-    vec4 tmpPos=texture2D(texturePosition,uv);
-    vec3 position=tmpPos.xyz;
-    
-    gl_FragColor=vec4(position+vec3(0.001),1.);
-    
+
+
+void main() {
+
+    vec3 pos = texture2D( texture, vUv ).xyz;
+
+    vec3 tar = pos + curl( pos.x * frequency, pos.y * frequency, pos.z * frequency ) * amplitude;
+
+    float d = length( pos-tar ) / maxDistance;
+    pos = mix( pos, tar, pow( d, 5. ) );
+
+    gl_FragColor = vec4( pos, 1. );
+
 }
