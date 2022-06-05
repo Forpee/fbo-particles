@@ -134,6 +134,7 @@ float maxDistance=uMaxDistance;
 
 vec3 target=position+curl(newPosition.x*f,newPosition.y*f,newPosition.z*f)*amplitude;
 
+//???
 float d=length(newPosition-target)/maxDistance;
 
 newPosition=mix(position,target,pow(d,uPow));
